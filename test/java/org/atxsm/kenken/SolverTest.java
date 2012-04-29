@@ -23,4 +23,11 @@ public class SolverTest {
         final Solver solver = new Solver(getTrivialPuzzle());
         Assert.assertEquals(new Solution((Integer) null), solver.getSolution());
     }
+
+    @Test
+    public void testIdentity() throws Exception {
+        final Solver solver = new Solver(getTrivialPuzzle());
+        Assert.assertTrue(solver.solve());
+        Assert.assertEquals(new Solution(1), solver.getSolution());
+    }
 }

@@ -54,6 +54,17 @@ public class Solution {
         return values[row][col];
     }
 
+    public boolean isComplete() {
+        for (Integer[] row : values) {
+            for (Integer value : row) {
+                if (value == null) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    
     @Override
     public boolean equals(Object o) {
         return this == o

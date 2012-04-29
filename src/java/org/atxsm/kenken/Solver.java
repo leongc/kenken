@@ -47,7 +47,19 @@ public class Solver {
      * @see #getSolution()
      */
     public boolean solve() {
-        return false;
+        evaluateIdentity();
+        return solution.isComplete();
+    }
+
+    /**
+     * Set the value for all single-celled Cages
+     */
+    private void evaluateIdentity() {
+        for (Puzzle.Cage cage : puzzle.cages) {
+            if (cage.rowsCols.length == 2) {
+                solution.set(cage.rowsCols[0], cage.rowsCols[1], cage.aggregateValue);
+            }
+        }
     }
 
 }
