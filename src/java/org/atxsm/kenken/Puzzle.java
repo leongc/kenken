@@ -31,33 +31,27 @@ import java.util.*;
  */
 public class Puzzle {
     protected final int size;
-    protected final Unique[] rows;
-    protected final Unique[] columns;
     protected final Cage[] cages;
     public Puzzle(final int size, Cage... cages) {
         this.size = size;
-        rows = new Unique[size];
-        columns = new Unique[size];
-        for (int k = 0; k < size; k++) {
-            rows[k] = new Unique(k);
-            columns[k] = new Unique(k);
-        }
-        List<Cell> allCells = new ArrayList<Cell>(size * size);
+        Cell[][] allCells = new Cell[size][size];
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
-                allCells.add(new Cell(rows[i], columns[j]));
+                allCells[i][j] = new Cell(i, j);
             }
         }
         this.cages = cages;
         for (Cage cage : cages) {
-            cage.populate(rows);
+            cage.populate(allCells);
         }
         
         // sanity check; are all cells in a cage?
         List<Cell> uncagedCells = new LinkedList<Cell>();
-        for (Cell cell : allCells) {
-            if (cell.cage == null) {
-                uncagedCells.add(cell);
+        for (Cell[] cellArray : allCells) {
+            for (Cell cell : cellArray) {
+                if (cell.cage == null) {
+                    uncagedCells.add(cell);
+                }
             }
         }
         if (!uncagedCells.isEmpty()) {
@@ -71,14 +65,12 @@ public class Puzzle {
 
 
     class Cell {
-        Unique row;
-        Unique column;
+        int row;
+        int column;
         Cage cage;
-        Cell(Unique row, Unique column) {
+        Cell(int row, int column) {
             this.row = row;
-            this.row.add(this);
             this.column = column;
-            this.column.add(this);
         }
         public void setCage(Cage cage) {
             if (this.cage != null) {
@@ -89,33 +81,12 @@ public class Puzzle {
 
         @Override
         public String toString() {
-            return "Cell{" +
-                    "row=" + row +
-                    ", column=" + column +
-                    ", cage=" + cage +
+            return "Cell{" + row + ", " + column +
+                    ", " + cage +
                     '}';
         }
     }
-    
-    class Unique {
-        List<Cell> cells = new ArrayList<Cell>(size);
-        int i;
-        public Unique(int i) {
-            this.i = i;
-        }
-        public void add(Cell cell) {
-            cells.add(cell);
-        }
-        public Cell get(int index) {
-            return cells.get(index);
-        }
 
-        @Override
-        public String toString() {
-            return String.valueOf(i);
-        }
-    }
-    
     static class Cage {
         static enum Operator {
            SUM, PRODUCT, DIFFERENCE, RATIO 
@@ -131,11 +102,11 @@ public class Puzzle {
             this.operator = op;
             this.rowsCols = rowsCols;
         }
-        public void populate(Unique[] rows) {
+        public void populate(Cell[][] cells) {
             for (int i = 0; i < rowsCols.length; i += 2) {
                 int r = rowsCols[i];
                 int c = rowsCols[i+1];
-                rows[r].get(c).setCage(this);
+                cells[r][c].setCage(this);
             }
         }
 
