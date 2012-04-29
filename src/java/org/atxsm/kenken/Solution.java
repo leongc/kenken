@@ -58,9 +58,17 @@ public class Solution {
      * @return true if value modified; false if unchanged
      */
     public boolean set(int row, int col, Integer value) {
-        if ((values[row][col] == null && value == null)
-                || value.equals(values[row][col])) {
+        if (value == null) {
+            throw new IllegalArgumentException("cannot unset value");
+        }
+        if (value < 1 || value > size) {
+            throw new IllegalArgumentException("value must be between 1 and " + size);
+        }
+        if (value.equals(values[row][col])) {
             return false;
+        }
+        if (values[row][col] != null) {
+            throw new IllegalStateException("value can only be set once");
         }
         values[row][col] = value;
         for (int i = 0; i < size; i++) {
@@ -79,21 +87,21 @@ public class Solution {
     /**
      * @return true if some value was modified; false if unchanged
      */
-    private boolean markImpossible(int row, int col, int value) {
+    boolean markImpossible(int row, int col, int value) {
         impossibles[row][col][value - 1] = true;
-        Integer possibleValue = findPossible(row, col);
+        Integer possibleValue = findSinglePossibility(row, col);
         return possibleValue != null && set(row, col, possibleValue);
     }
 
     /**
      * @return only possible value or null if multiple values are possible
      */
-    private Integer findPossible(int row, int col) {
+    private Integer findSinglePossibility(int row, int col) {
         Integer possible = null;
         for (int k = 0; k < size; k++) {
             if (!impossibles[row][col][k]) {
                 if (possible != null) {
-                    return -1; // multiple possibilities
+                    return null; // multiple possibilities
                 }
                 possible = k + 1;
             }
