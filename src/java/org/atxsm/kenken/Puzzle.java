@@ -24,15 +24,6 @@ import java.util.*;
  *     <li>The operators - and / are only valid for cages with two cells.</li>
  * </ul>
  * 
- * Solution space
- * <ul>
- *     <li>Identity. A cell in a cage with only one cell has the value of the aggregate value.</li>
- *     <li>Uniqueness. None of the other cells in the same row or column as a cell can have the same value as that cell.</li>
- *     <li>Factors. If a cage aggregate operator is * then all the unknown cell values in the cage must be factors of the aggregate value divided by the known cell values.</li>
- *     <li>Limited products. If the operator is / and both values are unknown, then all the unknown cell values must either be evenly divisible by the aggregate value using 1..N or be multiplied by the aggregate value to one of 1..N </li>
- *     <li>Inverse pairs. If a cage has two cells and one value is known, the value of the other cell can be derived algebraically using the aggregate value, the aggregate operator's inverse, and the known cell value.</li>
- * </ul>
- *
  *
  * User: Cheng Leong
  * Date: 2/29/12
