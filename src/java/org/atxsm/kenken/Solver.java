@@ -3,7 +3,7 @@ package org.atxsm.kenken;
 /**
  * Solution space
  * <ul>
- *     <li>Identity. A cell in a cage with only one cell has 
+ *     <li>Identity. A cell in a cage with only one cell has
  *         the value of the aggregate value.</li>
  *     <li>Uniqueness. None of the other cells in the same row 
  *         or column as a cell can have the same value as that 
@@ -54,7 +54,7 @@ public class Solver {
     /**
      * Set the value for all single-celled Cages
      */
-    private void evaluateIdentity() {
+    void evaluateIdentity() {
         for (Puzzle.Cage cage : puzzle.cages) {
             if (cage.rowsCols.length == 2) {
                 solution.set(cage.rowsCols[0], cage.rowsCols[1], cage.aggregateValue);
