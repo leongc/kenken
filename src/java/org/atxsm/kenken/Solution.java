@@ -10,15 +10,23 @@ import java.util.Arrays;
  * Time: 12:05 AM
  */
 public class Solution {
+    final int size;
     final Integer values[][];
-    
-    public Solution(Puzzle puzzle) {
-        values = new Integer[puzzle.size][puzzle.size]; 
+    final boolean impossibles[][][];
+
+    private Solution(int size) {
+        this.size = size;
+        values = new Integer[size][size];
+        impossibles = new boolean[size][size][size];
     }
-    
+
+    public Solution(Puzzle puzzle) {
+        this(puzzle.size); 
+    }
+
+    // for test assertions
     Solution(Integer... vals) {
-        final int size = getSize(vals);
-        values = new Integer[size][size]; 
+        this(calculateSqrtLength(vals)); 
         
         int row = 0;
         int col = 0;
@@ -31,25 +39,66 @@ public class Solution {
         }
     }
 
-    private int getSize(Integer[] vals) {
+    private static int calculateSqrtLength(Integer[] vals) {
         if (vals.length < 1) {
             throw new IllegalArgumentException("values are required");
         }
-        int size = 1;
+        int sqrt = 1;
         long square;
-        while ((square = size * size) < vals.length) {
-            size++;
+        while ((square = sqrt * sqrt) < vals.length) {
+            sqrt++;
         }
         if (vals.length < square) {
             throw new IllegalArgumentException("a square number of values is required");
         }
-        return size;
+        return sqrt;
     }
 
-    public void set(int row, int col, Integer value) {
+    /**
+     * @return true if value modified; false if unchanged
+     */
+    public boolean set(int row, int col, Integer value) {
+        if ((values[row][col] == null && value == null)
+                || value.equals(values[row][col])) {
+            return false;
+        }
         values[row][col] = value;
+        for (int i = 0; i < size; i++) {
+            if (i != row) {
+                markImpossible(i, col, value);
+            }
+        }
+        for (int j = 0; j < size; j++) {
+            impossibles[row][j][value - 1] = (j != col);
+        }
+        return true;
     }
     
+    /**
+     * @return true if some value was modified; false if unchanged
+     */
+    private boolean markImpossible(int row, int col, int value) {
+        impossibles[row][col][value - 1] = true;
+        Integer possibleValue = findPossible(row, col);
+        return possibleValue != null && set(row, col, possibleValue);
+    }
+
+    /**
+     * @return only possible value or null if multiple values are possible
+     */
+    private Integer findPossible(int row, int col) {
+        Integer possible = null;
+        for (int k = 0; k < size; k++) {
+            if (!impossibles[row][col][k]) {
+                if (possible != null) {
+                    return -1; // multiple possibilities
+                }
+                possible = k + 1;
+            }
+        }
+        return possible;
+    }
+
     public Integer get(int row, int col) {
         return values[row][col];
     }
@@ -80,7 +129,6 @@ public class Solution {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Solution{\n");
-        final int size = values.length;
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
                 sb.append(get(row, col)).append('\t');

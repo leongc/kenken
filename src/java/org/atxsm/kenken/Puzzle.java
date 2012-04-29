@@ -71,13 +71,10 @@ public class Puzzle {
 
 
     class Cell {
-        Integer value;
-        boolean[] impossible;
         Unique row;
         Unique column;
         Cage cage;
         Cell(Unique row, Unique column) {
-            this.impossible = new boolean[size];
             this.row = row;
             this.row.add(this);
             this.column = column;
@@ -95,7 +92,6 @@ public class Puzzle {
             return "Cell{" +
                     "row=" + row +
                     ", column=" + column +
-                    (value == null ? ", impossible=" + Arrays.toString(impossible) : ", value=" + value) +
                     ", cage=" + cage +
                     '}';
         }

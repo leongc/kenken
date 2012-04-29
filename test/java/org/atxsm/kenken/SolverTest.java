@@ -42,15 +42,17 @@ public class SolverTest {
     @Test
     public void testIdentity() throws Exception {
         final Solver solver = new Solver(getTrivialPuzzle());
-        Assert.assertTrue(solver.solve());
+        solver.solve();
         Assert.assertEquals(new Solution(1), solver.getSolution());
+        Assert.assertTrue(solver.getSolution().isComplete());
     }
 
     @Test
-    public void testTinyIdentityIncomplete() throws Exception {
+    public void testTinyElimination() throws Exception {
         final Solver solver = new Solver(getTinyPuzzle());
-        solver.evaluateIdentity();
-        Assert.assertTrue(!solver.getSolution().isComplete());
-        Assert.assertEquals(new Solution(1, 2, null, null), solver.getSolution());
+        solver.solve();
+        Assert.assertEquals(new Solution(1, 2, 2, 1), solver.getSolution());
+        Assert.assertTrue(solver.getSolution().isComplete());
     }
+
 }
