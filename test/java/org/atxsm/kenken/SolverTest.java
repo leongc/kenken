@@ -26,8 +26,7 @@ public class SolverTest {
         if (TINY_PUZZLE == null) {
             TINY_PUZZLE = new Puzzle(2, 
                     new Cage(1, SUM, 0,0), 
-                    new Cage(2, SUM, 0,1),
-                    new Cage(2, PRODUCT, 1,0, 1,1)
+                    new Cage(4, PRODUCT, 0,1, 1,0, 1,1)
             );
         }
         return TINY_PUZZLE;

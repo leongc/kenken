@@ -10,9 +10,9 @@ import java.util.Arrays;
  * Time: 12:05 AM
  */
 public class Solution {
-    final int size;
-    final Integer values[][];
-    final boolean impossibles[][][];
+    final private int size;
+    final private Integer values[][];
+    final private boolean impossibles[][][];
 
     private Solution(int size) {
         this.size = size;
@@ -69,7 +69,9 @@ public class Solution {
             }
         }
         for (int j = 0; j < size; j++) {
-            impossibles[row][j][value - 1] = (j != col);
+            if (j != row) {
+                markImpossible(row, j, value);
+            }
         }
         return true;
     }
