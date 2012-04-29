@@ -29,7 +29,7 @@ public class PuzzleTest {
             Assert.assertTrue("Unexpected exception message: " + expected.getMessage(),
                     expected.getMessage().contains("Some cells remain uncaged"));
             Assert.assertTrue("Unexpected exception message: " + expected.getMessage(),
-                    expected.getMessage().contains("row=0, column=0"));
+                    expected.getMessage().contains("0, 0"));
         }
     }
     
@@ -51,7 +51,7 @@ public class PuzzleTest {
             Assert.assertTrue("Unexpected exception message: " + expected.getMessage(),
                     expected.getMessage().contains("Cell already belongs to a cage"));
             Assert.assertTrue("Unexpected exception message: " + expected.getMessage(),
-                    expected.getMessage().contains("row=0, column=0"));
+                    expected.getMessage().contains("0, 0"));
         }
     }
     
