@@ -1,9 +1,6 @@
 package org.atxsm.kenken;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Problem space
@@ -34,25 +31,25 @@ import java.util.Map;
  */
 public class Puzzle {
     private final int size;
-    private final Cage[] cages;
+    private final Set<Cage> cages;
 
     // must use Builder
-    private Puzzle(final int size, Cage... cages) {
+    private Puzzle(final int size, Set<Cage> cages) {
         this.size = size;
-        this.cages = cages;
+        this.cages = Collections.unmodifiableSet(new HashSet<Cage>(cages));
     }
 
     public int getSize() {
         return size;
     }
 
-    public Cage[] getCages() {
+    public Set<Cage> getCages() {
         return cages;
     }
 
     public static class Builder {
         private int size;
-        private List<Cage> cages = new LinkedList<Cage>();
+        private Set<Cage> cages = new HashSet<Cage>();
 
         public Builder(int size) {
             this.size = size;
@@ -65,7 +62,7 @@ public class Puzzle {
 
         public Puzzle build() {
             checkAllCellsInCages();
-            return new Puzzle(size, cages.toArray(new Cage[cages.size()]));
+            return new Puzzle(size, cages);
         }
 
         /**
@@ -127,6 +124,28 @@ public class Puzzle {
             this.target = val;
             this.operator = op;
             this.rowsCols = rowsCols;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Cage cage = (Cage) o;
+
+            if (target != cage.target) return false;
+            if (operator != cage.operator) return false;
+            if (!Arrays.equals(rowsCols, cage.rowsCols)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = target;
+            result = 31 * result + (operator != null ? operator.hashCode() : 0);
+            result = 31 * result + (rowsCols != null ? Arrays.hashCode(rowsCols) : 0);
+            return result;
         }
 
         @Override

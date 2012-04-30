@@ -1,9 +1,10 @@
 package org.atxsm.kenken;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
-import static org.atxsm.kenken.Operator.DIFFERENCE;
-import static org.atxsm.kenken.Operator.RATIO;
+import static org.atxsm.kenken.Operator.*;
 
 /**
  * Solution space
@@ -34,12 +35,12 @@ import static org.atxsm.kenken.Operator.RATIO;
  * Time: 11:46 PM
  */
 public class Solver {
-    private final Puzzle puzzle;
     private final Solution solution;
+    private final Set<Puzzle.Cage> cages;
     
     public Solver(Puzzle puzzle) {
-        this.puzzle = puzzle;
         this.solution = new Solution(puzzle.getSize());
+        this.cages = new HashSet<Puzzle.Cage>(puzzle.getCages());
     }
 
     public Solution getSolution() {
@@ -52,10 +53,9 @@ public class Solver {
      * @see #getSolution()
      */
     public boolean solve() {
-        evaluateIdentity();
         boolean modified;
         do {
-            modified = limitPairs();
+            modified = evaluateIdentity() | shrinkCages() | limitPairs();
         } while (modified);
         return solution.isComplete();
     }
@@ -63,12 +63,63 @@ public class Solver {
     /**
      * Set the value for all single-celled Cages
      */
-    void evaluateIdentity() {
-        for (Puzzle.Cage cage : puzzle.getCages()) {
+    boolean evaluateIdentity() {
+        boolean modified = false;
+        for (Iterator<Puzzle.Cage> iterator = cages.iterator(); iterator.hasNext(); ) {
+            Puzzle.Cage cage = iterator.next();
             if (cage.rowsCols.length == 2) {
                 solution.set(cage.rowsCols[0], cage.rowsCols[1], cage.target);
+                iterator.remove(); // solved cage
+                modified = true;
             }
         }
+        return modified;
+    }
+
+    /**
+     * Removes cells with values from SUM or PRODUCT cages
+     * @return true if cages were shrunk; false otherwise
+     */
+    boolean shrinkCages() {
+        boolean modified = false;
+        Set<Puzzle.Cage> shrunkCages = new HashSet<Puzzle.Cage>();
+        for (Iterator<Puzzle.Cage> iterator = cages.iterator(); iterator.hasNext(); ) {
+            Puzzle.Cage cage = iterator.next();
+            if (cage.operator == SUM || cage.operator == PRODUCT) {
+                for (int i = 0; i < cage.rowsCols.length; i += 2) {
+                    final Integer value = solution.get(cage.rowsCols[i], cage.rowsCols[i + 1]);
+                    if (value != null) {
+                        shrunkCages.add(createSmallerCage(cage, i, value));
+                        iterator.remove(); // old cage
+                        modified = true;
+                    }
+                }
+            }
+        }
+        if (modified) {
+            cages.addAll(shrunkCages);
+        }
+        return modified;
+    }
+
+    Puzzle.Cage createSmallerCage(Puzzle.Cage cage, int rowColOffset, int value) {
+        final int reducedTarget;
+        switch (cage.operator) {
+            case SUM: reducedTarget = cage.target - value; break;
+            case PRODUCT: reducedTarget = cage.target / value; break;
+            default: throw new IllegalArgumentException(
+                    "Can only shrink SUM or PRODUCT cages, not " + cage);
+        }
+        int[] reducedRowsCols = new int[cage.rowsCols.length - 2];
+        if (rowColOffset > 0) {
+            System.arraycopy(cage.rowsCols, 0,
+                    reducedRowsCols, 0, rowColOffset);
+        }
+        if (rowColOffset < reducedRowsCols.length) {
+            System.arraycopy(cage.rowsCols, rowColOffset + 2,
+                    reducedRowsCols, rowColOffset, reducedRowsCols.length - rowColOffset);
+        }
+        return new Puzzle.Cage(reducedTarget, cage.operator, reducedRowsCols);
     }
 
     /**
@@ -77,19 +128,19 @@ public class Solver {
      */
     boolean limitPairs() {
         boolean modified = false;
-        for (Puzzle.Cage cage : puzzle.getCages()) {
-            if (cage.operator == RATIO || cage.operator == DIFFERENCE) {
+        for (Puzzle.Cage cage : cages) {
+            if (cage.rowsCols.length == 4) {
                 final int row1 = cage.rowsCols[0];
                 final int col1 = cage.rowsCols[1];
-                if (solution.get(row1, col1) != null) { continue; } // skip solved Cages
                 final Set<Integer> possibilities1 = solution.findPossibilities(row1, col1);
                 final int row2 = cage.rowsCols[2];
                 final int col2 = cage.rowsCols[3];
-                if (solution.get(row2, col2) != null) { continue; } // skip solved Cages
                 final Set<Integer> possibilities2 = solution.findPossibilities(row2, col2);
-                for (int i : possibilities1) {
+                for (Iterator<Integer> iterator = possibilities1.iterator(); iterator.hasNext(); ) {
+                    int i = iterator.next();
                     if (impossiblePairs(i, possibilities2, cage.target, cage.operator)) {
                         modified |= solution.markImpossible(row1, col1, i);
+                        iterator.remove(); // remove i from possibilities1
                     }
                 }
                 for (int j : possibilities2) {
@@ -104,8 +155,10 @@ public class Solver {
 
     private boolean impossiblePairs(int i, Set<Integer> js, int target, Operator operator) {
         for (int j : js) {
-            if (((operator == DIFFERENCE && (i - target == j || j - target == i)))
-                    || (operator == RATIO && (i * target == j || j * target == i))) {
+            if (((operator == DIFFERENCE && (i - j == target || j - i == target)))
+                    || (operator == RATIO && (i * target == j || j * target == i))
+                    || (operator == SUM && (i + j == target))
+                    || (operator == PRODUCT && (i * j == target))) {
                 return false;
             }
         }
