@@ -14,20 +14,14 @@ public class Solution {
     final private Integer values[][];
     final private boolean impossibles[][][];
 
-    private Solution(int size) {
+    public Solution(int size) {
         this.size = size;
         values = new Integer[size][size];
         impossibles = new boolean[size][size][size];
     }
 
-    public Solution(Puzzle puzzle) {
-        this(puzzle.size); 
-    }
-
-    // for test assertions
-    Solution(Integer... vals) {
-        this(calculateSqrtLength(vals)); 
-        
+    // for tests
+    Solution setAll(Integer... vals) {
         int row = 0;
         int col = 0;
         for (Integer val : vals) {
@@ -37,21 +31,7 @@ public class Solution {
                 col = 0;
             }
         }
-    }
-
-    private static int calculateSqrtLength(Integer[] vals) {
-        if (vals.length < 1) {
-            throw new IllegalArgumentException("values are required");
-        }
-        int sqrt = 1;
-        long square;
-        while ((square = sqrt * sqrt) < vals.length) {
-            sqrt++;
-        }
-        if (vals.length < square) {
-            throw new IllegalArgumentException("a square number of values is required");
-        }
-        return sqrt;
+        return this;
     }
 
     /**

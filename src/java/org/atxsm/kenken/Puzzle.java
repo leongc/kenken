@@ -1,6 +1,9 @@
 package org.atxsm.kenken;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Problem space
@@ -30,92 +33,104 @@ import java.util.*;
  * Time: 3:28 AM
  */
 public class Puzzle {
-    protected final int size;
-    protected final Cage[] cages;
-    public Puzzle(final int size, Cage... cages) {
+    private final int size;
+    private final Cage[] cages;
+
+    // must use Builder
+    private Puzzle(final int size, Cage... cages) {
         this.size = size;
-        Cell[][] allCells = new Cell[size][size];
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                allCells[i][j] = new Cell(i, j);
-            }
-        }
         this.cages = cages;
-        for (Cage cage : cages) {
-            cage.populate(allCells);
-        }
-        
-        // sanity check; are all cells in a cage?
-        List<Cell> uncagedCells = new LinkedList<Cell>();
-        for (Cell[] cellArray : allCells) {
-            for (Cell cell : cellArray) {
-                if (cell.cage == null) {
-                    uncagedCells.add(cell);
-                }
-            }
-        }
-        if (!uncagedCells.isEmpty()) {
-            final StringBuilder sb = new StringBuilder("Some cells remain uncaged:\n");
-            for (Cell cell : uncagedCells) {
-                sb.append(cell.toString()).append('\n');
-            }
-            throw new IllegalArgumentException(sb.toString());
-        }
     }
 
+    public int getSize() {
+        return size;
+    }
 
-    class Cell {
-        int row;
-        int column;
-        Cage cage;
-        Cell(int row, int column) {
-            this.row = row;
-            this.column = column;
+    public Cage[] getCages() {
+        return cages;
+    }
+
+    public static class Builder {
+        private int size;
+        private List<Cage> cages = new LinkedList<Cage>();
+
+        public Builder(int size) {
+            this.size = size;
         }
-        public void setCage(Cage cage) {
-            if (this.cage != null) {
-                throw new IllegalStateException("Cell already belongs to a cage: " + toString());
+
+        public Builder addCage(int val, Operator op, int... rowsCols) {
+            cages.add(new Cage(val, op, rowsCols));
+            return this;
+        }
+
+        public Puzzle build() {
+            checkAllCellsInCages();
+            return new Puzzle(size, cages.toArray(new Cage[cages.size()]));
+        }
+
+        /**
+         * check to ensure all cells are in a cage
+         * @throws IllegalStateException when cells remain uncaged
+         */
+        private void checkAllCellsInCages() {
+            Map<String, Cage> cellCageMap = new HashMap<String, Cage>();
+            // put all cells in a Map keyed by "row,col"
+            for (Cage cage : cages) {
+                for (int i = 0; i < cage.rowsCols.length; i += 2) {
+                    final int row = cage.rowsCols[i];
+                    final int col = cage.rowsCols[i+1];
+                    final String key = makeKey(row, col);
+                    if (cellCageMap.containsKey(key)) {
+                        throw new IllegalStateException("Cell at ("
+                                + key + ") cannot be in both "
+                                + cellCageMap.get(key) + " and " + cage);
+                    }
+                    cellCageMap.put(key, cage);
+                }
             }
-            this.cage = cage;
+            // verify all cells in grid are in a cage
+            final StringBuilder sb = new StringBuilder();
+            for (int row = 0 ; row < size; row++) {
+                for (int col = 0; col < size; col++) {
+                    final String key = makeKey(row, col);
+                    if (!cellCageMap.containsKey(key)) {
+                        if (sb.length() > 0) { sb.append(','); }
+                        sb.append('(').append(key).append(')');
+                    }
+                }
+            }
+            if (sb.length() > 0) {
+                sb.insert(0, "Some cells remain uncaged: ");
+                throw new IllegalStateException(sb.toString());
+            }
         }
 
-        @Override
-        public String toString() {
-            return "Cell{" + row + ", " + column +
-                    ", " + cage +
-                    '}';
+        private String makeKey(int r, int c) {
+            return String.format("%d,%d", r, c);
         }
+
     }
 
     static class Cage {
-        static enum Operator {
-           SUM, PRODUCT, DIFFERENCE, RATIO 
-        }
-        final int aggregateValue;
+        final int target;
         final Operator operator;
         final int[] rowsCols;
-        public Cage(int val, Operator op, int... rowsCols) {
+
+        Cage(int val, Operator op, int... rowsCols) {
             if (rowsCols.length % 2 != 0 || rowsCols.length < 1) {
                 throw new IllegalArgumentException("rows and columns of cell locations must be in pairs");
             }
-            this.aggregateValue = val;
+            this.target = val;
             this.operator = op;
             this.rowsCols = rowsCols;
-        }
-        public void populate(Cell[][] cells) {
-            for (int i = 0; i < rowsCols.length; i += 2) {
-                int r = rowsCols[i];
-                int c = rowsCols[i+1];
-                cells[r][c].setCage(this);
-            }
         }
 
         @Override
         public String toString() {
-            return "Cage{" + 
+            return "Cage{" +
                     Integer.toString(hashCode(), 36) +
-                    ", aggregateValue=" + aggregateValue +
-                    ", operator=" + operator +
+                    ", " + target +
+                    " " + operator +
                     '}';
         }
     }

@@ -34,7 +34,7 @@ public class Solver {
     
     public Solver(Puzzle puzzle) {
         this.puzzle = puzzle;
-        this.solution = new Solution(puzzle);
+        this.solution = new Solution(puzzle.getSize());
     }
 
     public Solution getSolution() {
@@ -55,9 +55,9 @@ public class Solver {
      * Set the value for all single-celled Cages
      */
     void evaluateIdentity() {
-        for (Puzzle.Cage cage : puzzle.cages) {
+        for (Puzzle.Cage cage : puzzle.getCages()) {
             if (cage.rowsCols.length == 2) {
-                solution.set(cage.rowsCols[0], cage.rowsCols[1], cage.aggregateValue);
+                solution.set(cage.rowsCols[0], cage.rowsCols[1], cage.target);
             }
         }
     }

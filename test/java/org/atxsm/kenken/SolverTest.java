@@ -3,8 +3,9 @@ package org.atxsm.kenken;
 import org.junit.Assert;
 import org.junit.Test;
 
-import static org.atxsm.kenken.Puzzle.Cage;
-import static org.atxsm.kenken.Puzzle.Cage.Operator.*;
+import static org.atxsm.kenken.Operator.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * User: Cheng Leong
@@ -12,46 +13,21 @@ import static org.atxsm.kenken.Puzzle.Cage.Operator.*;
  * Time: 12:22 AM
  */
 public class SolverTest {
-    private static Puzzle TRIVIAL_PUZZLE;
-    private static Puzzle TINY_PUZZLE;
-
-    public static Puzzle getTrivialPuzzle() {
-        if (TRIVIAL_PUZZLE == null) {
-            TRIVIAL_PUZZLE = new Puzzle(1, new Cage(1, SUM, 0,0));
-        }
-        return TRIVIAL_PUZZLE;
-    }
-
-    public static Puzzle getTinyPuzzle() {
-        if (TINY_PUZZLE == null) {
-            TINY_PUZZLE = new Puzzle(2, 
-                    new Cage(1, SUM, 0,0), 
-                    new Cage(4, PRODUCT, 0,1, 1,0, 1,1)
-            );
-        }
-        return TINY_PUZZLE;
-    }
-
-    @Test
-    public void testSolution() throws Exception {
-        final Solver solver = new Solver(getTrivialPuzzle());
-        Assert.assertEquals(new Solution((Integer) null), solver.getSolution());
-    }
+    private static final Puzzle.Builder TRIVIAL_PUZZLE_BUILDER =
+            new Puzzle.Builder(1)
+                    .addCage(1, SUM, 0,0);
+    private static final Solution TRIVIAL_SOLUTION =
+            new Solution(1).setAll(1);
 
     @Test
     public void testIdentity() throws Exception {
-        final Solver solver = new Solver(getTrivialPuzzle());
+        final Solver solver = new Solver(TRIVIAL_PUZZLE_BUILDER.build());
+        final Solution empty1 = new Solution(1); // no values yet
+        assertEquals(empty1, solver.getSolution());
+        
         solver.solve();
-        Assert.assertEquals(new Solution(1), solver.getSolution());
-        Assert.assertTrue(solver.getSolution().isComplete());
-    }
-
-    @Test
-    public void testTinyElimination() throws Exception {
-        final Solver solver = new Solver(getTinyPuzzle());
-        solver.solve();
-        Assert.assertEquals(new Solution(1, 2, 2, 1), solver.getSolution());
-        Assert.assertTrue(solver.getSolution().isComplete());
+        assertEquals(TRIVIAL_SOLUTION, solver.getSolution());
+        assertTrue(solver.getSolution().isComplete());
     }
 
 }
