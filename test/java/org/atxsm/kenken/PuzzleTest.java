@@ -1,11 +1,9 @@
 package org.atxsm.kenken;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.atxsm.kenken.Operator.*;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 /**
  * Basic problem example from http://en.wikipedia.org/wiki/KenKen
@@ -48,7 +46,7 @@ public class PuzzleTest {
         try {
             new Puzzle.Builder(2)
                     .addCage(3, SUM, 0,0, 1,0)
-                    .addCage(2, RATIO, 0,1, 1,1, 0,0)
+                    .addCage(2, PRODUCT, 0,1, 1,1, 0,0)
                     .build();
             fail("Expected IllegalStateException, none thrown");
         } catch (IllegalStateException expected) {
@@ -56,6 +54,18 @@ public class PuzzleTest {
                     expected.getMessage().contains("0,0"));
             assertTrue("Unexpected exception message: " + expected.getMessage(),
                     expected.getMessage().contains("cannot be in both"));
+        }
+    }
+
+    @Test
+    public void testBadRatio() {
+        try {
+            new Puzzle.Builder(2)
+                    .addCage(1, RATIO, 0, 1, 1, 1, 0, 0)
+                    .build();
+            fail("Expected IllegalArgumentException, none thrown");
+        } catch (IllegalArgumentException expected) {
+            assertEquals("RATIO must have exactly two cells", expected.getMessage());
         }
     }
     

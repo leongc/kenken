@@ -1,6 +1,8 @@
 package org.atxsm.kenken;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A KenKen solution consists of an NxN grid of cells.
@@ -100,6 +102,16 @@ public class Solution {
         return possible;
     }
 
+    Set<Integer> findPossibilities(int row, int col) {
+        Set<Integer> possible = new HashSet<Integer>();
+        for (int k = 0; k < size; k++) {
+            if (!impossibles[row][col][k]) {
+                possible.add(k + 1);
+            }
+        }
+        return possible;
+    }
+
     public Integer get(int row, int col) {
         return values[row][col];
     }
@@ -114,7 +126,7 @@ public class Solution {
         }
         return true;
     }
-    
+
     @Override
     public boolean equals(Object o) {
         return this == o

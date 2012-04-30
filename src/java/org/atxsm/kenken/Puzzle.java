@@ -120,6 +120,10 @@ public class Puzzle {
             if (rowsCols.length % 2 != 0 || rowsCols.length < 1) {
                 throw new IllegalArgumentException("rows and columns of cell locations must be in pairs");
             }
+            if ((op == Operator.RATIO || op == Operator.DIFFERENCE)
+                && rowsCols.length != 4) {
+                throw new IllegalArgumentException(op + " must have exactly two cells");
+            }
             this.target = val;
             this.operator = op;
             this.rowsCols = rowsCols;

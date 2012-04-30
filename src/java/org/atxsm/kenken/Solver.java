@@ -1,5 +1,7 @@
 package org.atxsm.kenken;
 
+import java.util.Set;
+
 /**
  * Solution space
  * <ul>
@@ -48,6 +50,10 @@ public class Solver {
      */
     public boolean solve() {
         evaluateIdentity();
+        boolean modified;
+        do {
+            modified = limitRatios();
+        } while (modified);
         return solution.isComplete();
     }
 
@@ -60,6 +66,44 @@ public class Solver {
                 solution.set(cage.rowsCols[0], cage.rowsCols[1], cage.target);
             }
         }
+    }
+
+    /**
+     * Mark impossible ratios
+     * @return true if impossibilities were added; false otherwise
+     */
+    boolean limitRatios() {
+        boolean modified = false;
+        for (Puzzle.Cage cage : puzzle.getCages()) {
+            if (cage.operator == Operator.RATIO) {
+                final int row1 = cage.rowsCols[0];
+                final int col1 = cage.rowsCols[1];
+                final Set<Integer> possibilities1 = solution.findPossibilities(row1, col1);
+                final int row2 = cage.rowsCols[2];
+                final int col2 = cage.rowsCols[3];
+                final Set<Integer> possibilities2 = solution.findPossibilities(row2, col2);
+                for (int i : possibilities1) {
+                    if (impossibleRatio(i, possibilities2, cage.target)) {
+                        modified |= solution.markImpossible(row1, col1, i);
+                    }
+                }
+                for (int j : possibilities2) {
+                    if (impossibleRatio(j, possibilities1, cage.target)) {
+                        modified |= solution.markImpossible(row2, col2, j);
+                    }
+                }
+            }
+        }
+        return modified;
+    }
+
+    private boolean impossibleRatio(int i, Set<Integer> js, int target) {
+        for (int j : js) {
+            if (i * target == j || j * target == i) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }
