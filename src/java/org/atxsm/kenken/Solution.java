@@ -61,16 +61,27 @@ public class Solution {
                 markImpossible(row, j, value);
             }
         }
+        for (int k = 0; k < size; k++) {
+            if (k+1 != value) {
+                markImpossible(row, col, k+1);
+            }
+        }
         return true;
     }
     
     /**
-     * @return true if some value was modified; false if unchanged
+     * @return true if this is a new fact; false if unchanged
      */
     boolean markImpossible(int row, int col, int value) {
+        if (impossibles[row][col][value - 1]) {
+            return false;
+        }
         impossibles[row][col][value - 1] = true;
         Integer possibleValue = findSinglePossibility(row, col);
-        return possibleValue != null && set(row, col, possibleValue);
+        if (possibleValue != null) {
+            set(row, col, possibleValue);
+        }
+        return true;
     }
 
     /**
