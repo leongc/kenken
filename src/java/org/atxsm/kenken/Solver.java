@@ -2,6 +2,9 @@ package org.atxsm.kenken;
 
 import java.util.Set;
 
+import static org.atxsm.kenken.Operator.DIFFERENCE;
+import static org.atxsm.kenken.Operator.RATIO;
+
 /**
  * Solution space
  * <ul>
@@ -52,7 +55,7 @@ public class Solver {
         evaluateIdentity();
         boolean modified;
         do {
-            modified = limitRatios();
+            modified = limitPairs();
         } while (modified);
         return solution.isComplete();
     }
@@ -69,26 +72,28 @@ public class Solver {
     }
 
     /**
-     * Mark impossible ratios
+     * Mark impossible pairs of ratios or differences
      * @return true if impossibilities were added; false otherwise
      */
-    boolean limitRatios() {
+    boolean limitPairs() {
         boolean modified = false;
         for (Puzzle.Cage cage : puzzle.getCages()) {
-            if (cage.operator == Operator.RATIO) {
+            if (cage.operator == RATIO || cage.operator == DIFFERENCE) {
                 final int row1 = cage.rowsCols[0];
                 final int col1 = cage.rowsCols[1];
+                if (solution.get(row1, col1) != null) { continue; } // skip solved Cages
                 final Set<Integer> possibilities1 = solution.findPossibilities(row1, col1);
                 final int row2 = cage.rowsCols[2];
                 final int col2 = cage.rowsCols[3];
+                if (solution.get(row2, col2) != null) { continue; } // skip solved Cages
                 final Set<Integer> possibilities2 = solution.findPossibilities(row2, col2);
                 for (int i : possibilities1) {
-                    if (impossibleRatio(i, possibilities2, cage.target)) {
+                    if (impossiblePairs(i, possibilities2, cage.target, cage.operator)) {
                         modified |= solution.markImpossible(row1, col1, i);
                     }
                 }
                 for (int j : possibilities2) {
-                    if (impossibleRatio(j, possibilities1, cage.target)) {
+                    if (impossiblePairs(j, possibilities1, cage.target, cage.operator)) {
                         modified |= solution.markImpossible(row2, col2, j);
                     }
                 }
@@ -97,9 +102,10 @@ public class Solver {
         return modified;
     }
 
-    private boolean impossibleRatio(int i, Set<Integer> js, int target) {
+    private boolean impossiblePairs(int i, Set<Integer> js, int target, Operator operator) {
         for (int j : js) {
-            if (i * target == j || j * target == i) {
+            if (((operator == DIFFERENCE && (i - target == j || j - target == i)))
+                    || (operator == RATIO && (i * target == j || j * target == i))) {
                 return false;
             }
         }

@@ -144,7 +144,11 @@ public class Solution {
         final StringBuilder sb = new StringBuilder("Solution{\n");
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
-                sb.append(get(row, col)).append('\t');
+                Object value = get(row, col);
+                if (value == null) {
+                    value = findPossibilities(row, col);
+                }
+                sb.append(value).append('\t');
             }
             sb.append('\n');
         }
